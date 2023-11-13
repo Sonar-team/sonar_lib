@@ -6,6 +6,10 @@ use std::thread;
 use layer_2_infos::PacketInfos;
 mod layer_2_infos;
 
+/// Captures packets on all network interfaces.
+///
+/// This function starts a separate thread for each network interface found on the system.
+/// Each thread captures packets independently.
 pub fn all_interfaces() {
     let interfaces = datalink::interfaces();
     let mut handles = vec![];
@@ -25,6 +29,13 @@ pub fn all_interfaces() {
     }
 }
 
+/// Captures packets on a specified network interface.
+///
+/// # Arguments
+/// * `interface` - A string slice that holds the name of the interface.
+///
+/// # Panics
+/// Panics if no interface with the given name is found.
 pub fn one_interface(interface: &str) {
     println!("L'interface choisie est: {}", interface);
     let interface_names_match = |iface: &NetworkInterface| iface.name == interface;
@@ -38,6 +49,13 @@ pub fn one_interface(interface: &str) {
     capture_packets(captured_interface);
 }
 
+/// Internal function to capture packets on a given network interface.
+///
+/// # Arguments
+/// * `interface` - A `datalink::NetworkInterface` object representing the network interface.
+///
+/// # Panics
+/// Panics if there is an error in creating the datalink channel or in packet capture.
 fn capture_packets(interface: datalink::NetworkInterface) {
     let (_, mut rx) = match datalink::channel(&interface, Default::default()) {
         Ok(Ethernet(tx, rx)) => (tx, rx),
