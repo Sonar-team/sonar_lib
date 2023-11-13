@@ -92,6 +92,7 @@ fn capture_packets(interface: datalink::NetworkInterface) {
 ///
 /// # Examples
 /// ```
+/// use sonar_lib::capture_packet::get_interfaces;
 /// let interfaces = get_interfaces();
 /// for interface in interfaces {
 ///     println!("Interface: {}", interface);
