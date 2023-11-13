@@ -23,6 +23,7 @@ pub fn print_banner() -> String {
     banner.green().to_string()
 }
 
+
 /// Scans the specified interface for a given duration and outputs to a CSV file.
 ///
 /// # Arguments

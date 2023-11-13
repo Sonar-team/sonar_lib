@@ -82,3 +82,39 @@ fn capture_packets(interface: datalink::NetworkInterface) {
         }
     }
 }
+
+/// Retrieves a list of network interface names available on the system.
+///
+/// This function iterates over all network interfaces, logs their names,
+/// and then collects these names into a vector. It's useful for obtaining
+/// a quick overview of the network interfaces that can be used for further
+/// network operations.
+///
+/// # Examples
+/// ```
+/// let interfaces = get_interfaces();
+/// for interface in interfaces {
+///     println!("Interface: {}", interface);
+/// }
+/// ```
+///
+/// # Returns
+/// Returns a `Vec<String>` containing the names of all network interfaces
+/// found on the system.
+///
+/// # Panics
+/// This function does not explicitly handle any errors related to fetching
+/// network interfaces and will panic if `datalink::interfaces()` fails.
+pub fn get_interfaces() -> Vec<String> {
+    
+    let interfaces = datalink::interfaces();
+    println!("Fetching network interfaces");
+
+    let names: Vec<String> = interfaces.iter().map(|iface| {
+        let name = iface.name.clone();
+        println!("Found interface: {}", name);
+        name
+    }).collect();
+
+    names
+}
