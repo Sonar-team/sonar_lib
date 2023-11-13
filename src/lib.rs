@@ -83,9 +83,9 @@ pub fn create_csv(output: &str) -> Result<(), Box<dyn Error>> {
 ///
 /// # Returns
 /// A `Result<(), Box<dyn Error>>` indicating success or failure.
-pub fn scan_until_interrupt(output: &str, interface: &str) -> Result<(), Box<dyn Error>> {
+pub fn scan_until_interrupt(interface: &str) {
     interfaces_handler(interface);
-    create_csv(output)
+    
 }
 
 /// Handles interrupt signals and finalizes the CSV output.
