@@ -27,4 +27,4 @@ jobs:
           CRATES_IO_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
         run: |
           cargo login $CRATES_IO_TOKEN
-          cargo publish --verbose
+          cargo publish --verbose --allow-dirty
