@@ -1,119 +1,43 @@
-use std::{error::Error, sync::{atomic::{AtomicBool, Ordering::SeqCst}, Arc}, thread::{self, sleep}, time::Duration};
-use capture_packet::{all_interfaces, one_interface};
-use colored::Colorize;
-use csv::Writer;
+//! # Sonar - Outil de surveillance réseau
+//!
+//! `sonar` est une bibliothèque et une application permettant la surveillance et l'analyse du trafic réseau.
+//! Elle offre des fonctionnalités pour capturer, analyser et enregistrer les paquets réseau sur différentes interfaces.
 
-pub mod capture_packet;
-
-/// Prints an ASCII art banner for the application.
+/// Gestion de l'interface de ligne de commande.
 ///
-/// # Returns
-/// A `String` containing the colored ASCII art banner.
-pub fn print_banner() -> String {
-    // ASCII art banner
-    let banner = r"
-    _________                           
-   /   _____/ ____   ____ _____ _______ 
-   \_____  \ /  _ \ /    \\__  \\_  __ \
-   /        (  <_> )   |  \/ __ \|  | \/
-  /_______  /\____/|___|  (____  /__|   
-          \/            \/     \/          
-   ";
+/// Ce module fournit les fonctionnalités nécessaires pour interpréter les commandes de l'utilisateur,
+/// traiter les arguments de ligne de commande et contrôler le comportement de l'application en fonction de ces entrées.
+pub mod cli;
 
-    banner.green().to_string()
-}
-
-
-/// Scans the specified interface for a given duration and outputs to a CSV file.
+/// Récupération des interfaces réseau.
 ///
-/// # Arguments
-/// * `output` - The file path to save the scan results as a CSV file.
-/// * `interface` - The network interface to scan.
-/// * `time` - Duration for which the scan will run, in seconds.
+/// Le module `get_interfaces` permet d'identifier et de lister les interfaces réseau disponibles sur la machine.
+/// Il est essentiel pour permettre à l'utilisateur de sélectionner l'interface sur laquelle écouter le trafic réseau.
+pub mod get_interfaces;
+
+/// Construction et gestion de la matrice des paquets.
 ///
-/// # Returns
-/// A `Result<(), Box<dyn Error>>` indicating success or failure.
-pub fn scan_for_time(output: &str, interface: &str, time: u64) -> Result<(), Box<dyn Error>> {
-    println!(
-        "Scanning {} interface(s) for {} seconds...",
-        interface, time
-    );
-    let interface_clone = interface.to_owned();
-    thread::spawn(move || {
-        interfaces_handler(&interface_clone);
-    });
+/// Ce module, `get_matrice`, est responsable de la création et de la gestion d'une structure de données
+/// pour organiser et stocker les informations sur les paquets capturés, facilitant leur analyse ultérieure.
+pub mod get_matrice;
 
-    compte_a_rebours(time);
-    create_csv(output)
-}
-
-fn compte_a_rebours(mut time: u64) {
-    loop {
-        println!(
-            "{}",
-            format!("Compte à rebours: {} secondes restantes", time).red()
-        );
-        if time == 0 {
-            break;
-        }
-        time -= 1;
-        sleep(Duration::from_secs(1));
-    }
-    println!("{}", "Compte à rebours: Temps écoulé!".red());
-}
-
-/// Creates a CSV file at the specified path.
+/// Sauvegarde des paquets capturés.
 ///
-/// # Arguments
-/// * `output` - The file path where the CSV file will be created.
-///
-/// # Returns
-/// A `Result<(), Box<dyn Error>>` indicating success or failure.
-pub fn create_csv(output: &str) -> Result<(), Box<dyn Error>> {
-    let mut writer = Writer::from_path(output)?;
-    writer.flush()?;
-    Ok(())
-}
+/// Le module `save_packets` offre des fonctionnalités pour enregistrer les paquets réseau capturés.
+/// Il permet la persistance des données pour une analyse postérieure ou pour la documentation.
+pub mod save_packets;
 
-/// Continuously scans the specified interface until an interrupt is received.
+/// Capture et analyse des paquets réseau.
 ///
-/// # Arguments
-/// * `output` - The file path to save the scan results as a CSV file.
-/// * `interface` - The network interface to scan.
+/// `sniff` est le cœur de l'application, responsable de la capture des paquets réseau sur une interface spécifiée,
+/// et de l'analyse de ces paquets pour en extraire des informations utiles.
+pub mod sniff;
+
+/// Gestion de l'état pour l'intégration avec Tauri.
 ///
-/// # Returns
-/// A `Result<(), Box<dyn Error>>` indicating success or failure.
-pub fn scan_until_interrupt(interface: &str) {
-    interfaces_handler(interface);
-    
-}
+/// Ce module, `tauri_state`, permet de gérer l'état partagé entre les différentes composantes de l'application,
+/// en particulier lors de l'utilisation de Tauri pour créer une interface graphique.
+pub mod tauri_state;
 
-/// Handles interrupt signals and finalizes the CSV output.
-///
-/// # Arguments
-/// * `r` - An `Arc<AtomicBool>` used to monitor interrupt signals.
-/// * `output` - The file path to save the final scan results as a CSV file.
-///
-/// # Returns
-/// A `Result<(), Box<dyn std::error::Error>>` indicating success or failure.
-pub fn handle_interrupt(
-    r: Arc<AtomicBool>,
-    output: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Ctrl+C pressed. Exiting...");
-    r.store(false, SeqCst);
-    create_csv(output)
-}
-
-fn interfaces_handler(interface: &str) {
-    match check_interface(interface) {
-        true => all_interfaces(),
-        false => one_interface(interface),
-    }
-}
-
-fn check_interface(interface: &str) -> bool {
-    matches!(interface, "all")
-}
-
+// Les tests unitaires pour valider la fonctionnalité de chaque composant de `sonar`.
 mod tests_unitaires;
